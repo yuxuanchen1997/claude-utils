@@ -11,7 +11,7 @@ CODEX_EXIT=$?
 SESSION_ID=$(tail -1 ~/.codex/history.jsonl 2>/dev/null | python3 -c "import sys, json; print(json.load(sys.stdin).get('session_id', ''))" 2>/dev/null || true)
 
 if [ -n "$SESSION_ID" ]; then
-    python3 ~/claude-utils/codex-to-claude.py "$SESSION_ID" --to-claude > /tmp/codex-to-claude-hook.log 2>&1 2>&1 || true
+    python3 ~/claude-utils/codex-to-claude.py "$SESSION_ID" > /tmp/codex-to-claude-hook.log 2>&1 || true
 fi
 
 exit $CODEX_EXIT
