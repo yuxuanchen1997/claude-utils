@@ -96,3 +96,23 @@ ln -sf ~/claude-utils/codex-to-claude.py ~/.local/bin/codex-to-claude.py
 ln -sf ~/claude-utils/claude-stop-hook.sh ~/.local/bin/claude-stop-hook.sh
 ln -sf ~/claude-utils/codex-with-sync ~/.local/bin/codex-with-sync
 ```
+
+## Installation
+
+Run the installer:
+
+```bash
+bash ~/claude-utils/install.sh
+```
+
+This will:
+
+1. **Create symlinks** from `~/.local/bin/` to the scripts in `~/claude-utils/`
+2. **Install the Claude Code Stop hook** into `~/.claude/settings.json` (skips if already present)
+3. **Print a reminder** to add the codex alias to your shell config
+
+For the codex auto-sync alias, add to `~/.bashrc` or `~/.zshrc`:
+
+```bash
+alias codex='bash ~/claude-utils/codex-with-sync'
+```
