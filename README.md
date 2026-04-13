@@ -2,14 +2,14 @@
 
 Bidirectional chat history sync between **Claude Code** and **Codex**.
 
-Convert sessions from either tool into the other's format, so you can resume a conversation started in one tool from the other.
+Convert sessions from either tool into the other's format, so you can resume a conversation started in one tool from the other. Both hooks fire automatically on session exit — no manual steps needed.
 
 ## What it does
 
 - **`claude-to-codex.py`** — Converts a Claude Code session into Codex's rollout JSONL format and writes it to `~/.codex/sessions/`.
 - **`codex-to-claude.py`** — Converts a Codex session into Claude Code's JSONL format and writes it to `~/.claude/projects/<path>/`.
 
-Both scripts overwrite existing sessions by default (since you want the latest state to win).
+Both scripts overwrite existing sessions by default (latest state wins).
 
 ## Manual usage
 
@@ -36,40 +36,34 @@ claude --resume <session-id>
 
 ### `claude-stop-hook.sh` — Claude Code end-of-session hook
 
-This script is wired into Claude Code's `Stop` hook in `~/.claude/settings.json`. When a Claude Code session ends, Claude sends a JSON payload on stdin containing `{"session_id": "..."}`. The hook extracts the session ID and runs `claude-to-codex.py` in the background.
+Wired into Claude Code's `Stop` hook in `~/.claude/settings.json`. When a Claude Code session ends, Claude sends a JSON payload on stdin containing `{"session_id": "..."}`. The hook extracts the session ID and runs `claude-to-codex.py` in the background.
 
-**Setup** — add to `~/.claude/settings.json`:
+### `codex-stop-hook.sh` — Codex end-of-session hook
 
-```json
-{
-  "hooks": {
-    "Stop": [
-      {
-        "type": "command",
-        "command": "bash ~/claude-utils/claude-stop-hook.sh"
-      }
-    ]
-  }
-}
+Wired into Codex's `Stop` hook in `~/.codex/hooks.json`. When a Codex session ends, Codex sends a JSON payload on stdin containing `{"session_id": "...", "transcript_path": "..."}`. The hook extracts the session ID and runs `codex-to-claude.py` in the background.
+
+Requires the `codex_hooks` feature flag in `~/.codex/config.toml`:
+
+```toml
+[features]
+codex_hooks = true
 ```
 
-No action needed from you — every time you finish a Claude Code conversation, it automatically appears in Codex.
+## Installation
 
-### `codex-with-sync` — Codex wrapper script
-
-Codex doesn't have an equivalent hook system, so instead this is a wrapper script you use *instead* of calling `codex` directly. It:
-
-1. Runs `codex` with all your arguments as-is
-2. After codex exits, reads the latest session ID from `~/.codex/history.jsonl`
-3. Runs `codex-to-claude.py` to convert it
-
-**Setup** — add an alias in your shell config:
+Run the installer:
 
 ```bash
-alias codex='bash ~/claude-utils/codex-with-sync'
+bash ~/claude-utils/install.sh
 ```
 
-Now every `codex` invocation automatically syncs back to Claude Code when you exit.
+This will:
+
+1. **Create symlinks** from `~/.local/bin/` to the scripts in `~/claude-utils/`
+2. **Install the Claude Code Stop hook** into `~/.claude/settings.json` (skips if already present)
+3. **Install the Codex Stop hook** into `~/.codex/hooks.json` and enable the `codex_hooks` feature flag in `~/.codex/config.toml`
+
+After installation, both tools will automatically sync sessions to the other on exit. No further action needed.
 
 ## How it works
 
@@ -94,25 +88,5 @@ For convenience, the scripts are symlinked into `~/.local/bin/`:
 ln -sf ~/claude-utils/claude-to-codex.py ~/.local/bin/claude-to-codex.py
 ln -sf ~/claude-utils/codex-to-claude.py ~/.local/bin/codex-to-claude.py
 ln -sf ~/claude-utils/claude-stop-hook.sh ~/.local/bin/claude-stop-hook.sh
-ln -sf ~/claude-utils/codex-with-sync ~/.local/bin/codex-with-sync
-```
-
-## Installation
-
-Run the installer:
-
-```bash
-bash ~/claude-utils/install.sh
-```
-
-This will:
-
-1. **Create symlinks** from `~/.local/bin/` to the scripts in `~/claude-utils/`
-2. **Install the Claude Code Stop hook** into `~/.claude/settings.json` (skips if already present)
-3. **Print a reminder** to add the codex alias to your shell config
-
-For the codex auto-sync alias, add to `~/.bashrc` or `~/.zshrc`:
-
-```bash
-alias codex='bash ~/claude-utils/codex-with-sync'
+ln -sf ~/claude-utils/codex-stop-hook.sh ~/.local/bin/codex-stop-hook.sh
 ```
