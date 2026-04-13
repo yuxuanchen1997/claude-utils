@@ -12,4 +12,4 @@ if [ -z "$SESSION_ID" ]; then
 fi
 
 # Run conversion in background (no flags needed - defaults to syncing)
-nohup python3 ~/.local/bin/claude-to-codex.py "$SESSION_ID" > /tmp/claude-to-codex-hook.log 2>&1 &
+nohup python3 ~/claude-utils/claude-to-codex.py "$SESSION_ID" > /tmp/claude-to-codex-hook.log 2>&1 &
